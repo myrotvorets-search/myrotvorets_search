@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Центр дослідження локальних аномалій — База фігурантів</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<style>
+  body{background:#030712;color:#e5e7eb;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0 1px,transparent 1px 3px)}
+  .ticker{display:inline-block;white-space:nowrap;padding-left:100%;animation:tick 40s linear infinite}
+  @keyframes tick{to{transform:translateX(-100%)}}
+  @media (prefers-reduced-motion:reduce){.ticker{animation:none;padding-left:0}}
+  .stamp{border:2px solid;transform:rotate(-4deg);display:inline-block}
+  .bar>i{display:block;height:100%;width:0;transition:width .9s ease}
+  :focus-visible{outline:2px solid #eab308;outline-offset:2px}
+</style>
+</head>
+<body class="font-mono min-h-screen">
+
+<header class="border-b-2 border-red-600 bg-[#0f172a]">
+  <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center gap-4">
+    <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true" class="shrink-0">
+      <path d="M32 3 58 12v22c0 14-11 23-26 27C17 57 6 48 6 34V12z" fill="#030712" stroke="#dc2626" stroke-width="3"/>
+      <circle cx="32" cy="28" r="11" fill="none" stroke="#eab308" stroke-width="3"/>
+      <circle cx="32" cy="28" r="3" fill="#eab308"/>
+      <path d="M32 14v6M32 36v6M18 28h6M40 28h6" stroke="#eab308" stroke-width="2"/>
+    </svg>
+    <div class="flex-1 min-w-[240px]">
+      <h1 class="text-lg sm:text-2xl font-bold text-yellow-500 leading-tight">Центр дослідження локальних аномалій та загрози суспільству</h1>
+      <p class="text-xs text-gray-400">Реєстр фігурантів · внутрішній архів №0001</p>
+    </div>
+    <div class="flex flex-col gap-2 items-end">
+      <span class="stamp border-red-600 text-red-500 px-3 py-1 font-bold text-sm">СЕКРЕТНО</span>
+      <span class="stamp border-yellow-500 text-yellow-500 px-3 py-1 font-bold text-xs">ОСОБЛИВО НЕДОПУСТИМІ</span>
+    </div>
+  </div>
+  <div class="bg-red-700 text-white text-sm overflow-hidden py-1 flex">
+    <span class="bg-black text-yellow-400 px-3 font-bold shrink-0 z-10">ОСТАННІ ОПЕРАТИВНІ ЗВЕДЕННЯ</span>
+    <div class="overflow-hidden flex-1"><span class="ticker">
+      ⚠ Квадроцикл Ростислава зафіксовано біля двору Семенівни — кури вимагають пояснень ◆ Остап знову розвалив дисципліну за 3 секунди — рекорд збережено ◆ Віталій подолав Тису: польські вишивки отримали нового абітурієнта ◆ Корова знеслася — курка дає молоко — комісія працює ◆
+    </span></div>
+  </div>
+  <nav class="max-w-6xl mx-auto px-4 flex gap-1 text-sm" aria-label="Розділи">
+    <button data-tab="home" class="tab px-4 py-2 border-b-2">Головна / База фігурантів</button>
+    <button data-tab="report" class="tab px-4 py-2 border-b-2">Анонімний донос</button>
+  </nav>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-6">
+
+  <!-- ГОЛОВНА -->
+  <section id="home" class="tabpane">
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-5">
+      <div class="border border-red-600 bg-red-950/30 px-5 py-3">
+        <div class="text-xs text-gray-400">РОЗШУКУЮТЬСЯ ФІГУРАНТІВ</div>
+        <div class="text-4xl font-bold text-red-500" id="counter">3</div>
+      </div>
+      <div class="flex-1 min-w-[260px] max-w-xl">
+        <label for="search" class="sr-only">Пошук по картках</label>
+        <input id="search" type="search" placeholder="Пошук за ПІБ або ключовим словом досьє…" class="w-full bg-[#0f172a] border border-gray-600 focus:border-yellow-500 px-3 py-2 text-sm placeholder-gray-500">
+        <div class="flex flex-wrap gap-2 mt-2 text-xs" id="filters"></div>
+      </div>
+    </div>
+    <div id="grid" class="grid gap-5 md:grid-cols-3"></div>
+    <p id="empty" class="hidden text-center text-yellow-500 py-12 border border-dashed border-yellow-600 mt-4">За вашим запитом фігурантів не виявлено. Змініть запит або скиньте фільтр.</p>
+  </section>
+
+  <!-- ДОНОС -->
+  <section id="report" class="tabpane hidden">
+    <div class="max-w-2xl mx-auto border border-yellow-600 bg-[#0f172a] p-6">
+      <h2 class="text-xl font-bold text-yellow-500 mb-1">Анонімний донос</h2>
+      <p class="text-sm text-gray-400 mb-5">Громадянине, ваша пильність цінується. Усі повідомлення розглядаються вкрай серйозно та з абсолютно непроникним виразом обличчя.</p>
+      <form id="reportForm" class="space-y-4" novalidate>
+        <div>
+          <label for="who" class="block text-sm mb-1">На кого донос</label>
+          <input id="who" required class="w-full bg-black border border-gray-600 focus:border-yellow-500 px-3 py-2 text-sm" placeholder="Прізвище, ім'я, позивний">
+        </div>
+        <div>
+          <label for="what" class="block text-sm mb-1">Опис злочину</label>
+          <textarea id="what" rows="5" required class="w-full bg-black border border-gray-600 focus:border-yellow-500 px-3 py-2 text-sm" placeholder="Місце, час, кількість свідків-курей…"></textarea>
+        </div>
+        <p id="formErr" class="hidden text-red-500 text-sm">Заповніть обидва поля: без імені й суті справу відкрити неможливо.</p>
+        <button class="bg-red-600 hover:bg-red-500 text-white font-bold px-5 py-2">Надіслати в спецархів</button>
+      </form>
+      <div id="formOk" class="hidden mt-5 border border-green-600 bg-green-950/30 p-4 text-sm text-green-400"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="border-t border-gray-800 text-center text-xs text-gray-500 py-6 px-4">
+  Усі збіги випадкові, кури й корови — вигадані. Сайт створено суто для жарту.
+</footer>
+
+<!-- МОДАЛКА ДОСЬЄ -->
+<div id="modal" class="hidden fixed inset-0 z-50 bg-black/80 overflow-y-auto p-4" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="max-w-3xl mx-auto bg-[#0f172a] border-2 border-red-600 relative">
+    <button id="mClose" class="absolute top-2 right-3 text-2xl text-gray-400 hover:text-white" aria-label="Закрити">×</button>
+    <div id="mBody" class="p-6"></div>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  { id:1, name:"Кропивницький Остап", dob:null, img:"ostap.jpg", alt:"Фото фігуранта: Кропивницький Остап",
+    badge:"ГОЛОВНИЙ ФІГУРАНТ / ОСОБЛИВО СМІШНИЙ", cat:"humor", color:"red",
+    dossier:"Засновник аномальної активності в базі. Володіє зброєю масового гумору, здатний розвалити дисципліну в будь-якій компанії за 3 секунди.",
+    meters:[["Рівень сміху Остапа",98,"%"]],
+    proofs:["Свідчення №1: тиха нарада перетворилась на концерт за 3 секунди (секундомір не бреше).","Свідчення №2: вчитель вдруге за урок «зненацька закашлявся».","Експертний висновок: зброя гумору — без дозволу, без глушника."] },
+  { id:2, name:"Грубас Ростислав Миколайович", dob:"14 серпня 2010 року", img:"rostyslav.jpg", alt:"Фото фігуранта: Грубас Ростислав Миколайович",
+    badge:"ТЕРОР СІЛЬСЬКОГО ГОСПОДАРСТВА", cat:"agro", color:"yellow",
+    dossier:"Фігурант пересувається на аномально гучному квадроциклі. Внаслідок його заїздів у сусідки Семенівни стався локальний збій законів фізики: кури перестали доїтися, а корова перестала нестися (корова знеслася, а курка дає молоко).",
+    meters:[["Рівень гучності квадроцикла",94,"дБ-ів умовних"],["Рівень шоку Семенівни",87,"%"]],
+    proofs:["Доказ А: яйце, знесене коровою (збережено в холодильнику Семенівни).","Доказ Б: курка, що дає молоко, відмовляється від співбесід.","Доказ В: аудіозапис квадроцикла — мембрана мікрофона не вижила."] },
+  { id:3, name:"Лега Віталій Помідорович", dob:"28 лютого 2010 року", img:"vitaliy.jpg", alt:"Фото фігуранта: Лега Віталій Помідорович",
+    badge:"МІЖНАРОДНИЙ ПЛАВЕЦЬ-СТУДЕНТ", cat:"sport", color:"yellow",
+    dossier:"Здійснив безпрецедентний заплив через річку Тиса з метою втечі до Польщі заради здобуття вищої освіти.",
+    meters:[["Дистанція запливу",72,"% ширини Тиси подолано з ентузіазмом"]],
+    proofs:["Доказ А: мокрий конспект, знайдений на польському березі.","Доказ Б: рекорд швидкості «від лекції до лекції» — вплав.","Висновок: прагнення до знань у наявності, прикордонний кордон — в шоці."] }
+];
+const CATS = {all:"Усі", humor:"Гумор", agro:"Агросектор", sport:"Водні види"};
+const col = c => c==="red" ? ["border-red-600","text-red-500","bg-red-600","text-white"] : ["border-yellow-500","text-yellow-500","bg-yellow-500","text-black"];
+
+const esc = s => String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+let cat = "all";
+
+function photo(p, cls){
+  return `<div class="${cls} bg-gray-800 relative overflow-hidden">
+    <img src="${p.img}" alt="${esc(p.alt)}" class="w-full h-full object-cover grayscale contrast-125"
+      onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'w-full h-full flex flex-col items-center justify-center bg-gray-700 text-gray-400 text-xs text-center',innerHTML:'<svg width=\\'64\\' height=\\'64\\' viewBox=\\'0 0 24 24\\' fill=\\'#6b7280\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8z\\'/></svg>ФОТО ЗАСЕКРЕЧЕНО'}))">
+  </div>`;
+}
+
+function render(){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const list = DATA.filter(p => (cat==="all"||p.cat===cat) && (p.name+p.dossier+p.badge).toLowerCase().includes(q));
+  document.getElementById('grid').innerHTML = list.map(p => {
+    const [b,t,bg,fg] = col(p.color);
+    return `<article class="bg-[#0f172a] border ${b} flex flex-col">
+      ${photo(p,'h-64')}
+      <div class="p-4 flex flex-col gap-3 flex-1">
+        <span class="${bg} ${fg} text-xs font-bold px-2 py-1 self-start">${p.badge}</span>
+        <h3 class="text-lg font-bold ${t}">${p.name}</h3>
+        ${p.dob?`<div class="text-xs text-gray-400">Дата народження: ${p.dob}</div>`:''}
+        <p class="text-sm text-gray-300 flex-1">${p.dossier}</p>
+        <button data-open="${p.id}" class="border ${b} ${t} hover:${bg} hover:text-black px-3 py-2 text-sm font-bold">Детальне досьє</button>
+      </div></article>`;
+  }).join('');
+  document.getElementById('empty').classList.toggle('hidden', list.length>0);
+  document.getElementById('counter').textContent = DATA.length;
+}
+
+function renderFilters(){
+  document.getElementById('filters').innerHTML = Object.entries(CATS).map(([k,v]) =>
+    `<button data-cat="${k}" class="px-3 py-1 border ${k===cat?'bg-yellow-500 text-black border-yellow-500':'border-gray-600 text-gray-300'}">${v}</button>`).join('');
+}
+
+function openModal(id){
+  const p = DATA.find(x=>x.id===id); const [b,t] = col(p.color);
+  document.getElementById('mBody').innerHTML = `
+    <div class="flex flex-wrap gap-5">
+      ${photo(p,'w-40 h-52 shrink-0 border '+b)}
+      <div class="flex-1 min-w-[200px]">
+        <div class="text-xs text-red-500 font-bold mb-1">ДОСЬЄ №${String(p.id).padStart(4,'0')} · СЕКРЕТНО</div>
+        <h2 id="mTitle" class="text-xl font-bold ${t} mb-1">${p.name}</h2>
+        ${p.dob?`<div class="text-xs text-gray-400 mb-2">Дата народження: ${p.dob}</div>`:''}
+        <span class="text-xs font-bold border ${b} ${t} px-2 py-1 inline-block mb-3">${p.badge}</span>
+        <p class="text-sm text-gray-300">${p.dossier}</p>
+      </div>
+    </div>
+    <h3 class="text-yellow-500 font-bold mt-6 mb-2">Характеристики</h3>
+    <div class="space-y-3">${p.meters.map(m=>`
+      <div><div class="flex justify-between text-xs mb-1"><span>${m[0]}</span><span class="${t}">${m[1]} ${m[2]}</span></div>
+      <div class="bar h-3 bg-gray-800 border border-gray-700"><i class="${p.color==='red'?'bg-red-600':'bg-yellow-500'}" data-w="${m[1]}"></i></div></div>`).join('')}
+    </div>
+    <h3 class="text-yellow-500 font-bold mt-6 mb-2">Докази</h3>
+    <ul class="space-y-2 text-sm">${p.proofs.map(x=>`<li class="border-l-4 border-red-600 bg-black/40 px-3 py-2">${x}</li>`).join('')}</ul>`;
+  const m = document.getElementById('modal'); m.classList.remove('hidden'); document.body.style.overflow='hidden';
+  requestAnimationFrame(()=>document.querySelectorAll('.bar>i').forEach(i=>i.style.width=i.dataset.w+'%'));
+  document.getElementById('mClose').focus();
+}
+function closeModal(){ document.getElementById('modal').classList.add('hidden'); document.body.style.overflow=''; }
+
+function showTab(name){
+  document.querySelectorAll('.tabpane').forEach(s=>s.classList.toggle('hidden', s.id!==name));
+  document.querySelectorAll('.tab').forEach(b=>{
+    const on = b.dataset.tab===name;
+    b.className = 'tab px-4 py-2 border-b-2 ' + (on?'border-yellow-500 text-yellow-500':'border-transparent text-gray-400 hover:text-white');
+  });
+}
+
+document.addEventListener('click', e=>{
+  const o = e.target.closest('[data-open]'); if(o) openModal(+o.dataset.open);
+  const c = e.target.closest('[data-cat]'); if(c){ cat=c.dataset.cat; renderFilters(); render(); }
+  const t = e.target.closest('[data-tab]'); if(t) showTab(t.dataset.tab);
+  if(e.target.id==='modal') closeModal();
+});
+document.getElementById('mClose').addEventListener('click', closeModal);
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+document.getElementById('search').addEventListener('input', render);
+
+document.getElementById('reportForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const who = document.getElementById('who').value.trim(), what = document.getElementById('what').value.trim();
+  const err = document.getElementById('formErr'), ok = document.getElementById('formOk');
+  if(!who||!what){ err.classList.remove('hidden'); ok.classList.add('hidden'); return; }
+  err.classList.add('hidden');
+  const n = Math.floor(Math.random()*9000+1000);
+  ok.textContent = `Донос №${n} на «${who}» прийнято до спецархіву. Автора встановлено не буде (курей уже опитали). Дякуємо за пильність.`;
+  ok.classList.remove('hidden'); e.target.reset();
+});
+
+renderFilters(); render(); showTab('home');
+</script>
+</body>
+</html>
