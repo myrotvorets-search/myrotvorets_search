@@ -278,92 +278,159 @@ document.getElementById('reportForm').addEventListener('submit', e=>{
   ok.classList.remove('hidden'); e.target.reset();
 });
 
-/* ===== НОВИНИ ===== */
-const NKEY = 'mirotvorets_news_v1';
-let news = [];
-try { news = JSON.parse(localStorage.getItem(NKEY) || '[]'); if(!Array.isArray(news)) news = []; } catch(e){ news = []; }
-let pendingImg = null;
-const saveNews = () => { try { localStorage.setItem(NKEY, JSON.stringify(news)); return true; } catch(e){ return false; } };
-const safeImg = u => /^(https?:\/\/|data:image\/)/i.test(u||'');
-
-function renderNews(){
-  const feed = document.getElementById('feed');
-  feed.innerHTML = news.map(n => `
-    <article class="bg-[#0f172a] border border-gray-700 hover:border-yellow-600">
-      ${n.img && safeImg(n.img)
-        ? `<img src="${esc(n.img)}" alt="Фото до новини" class="news-img w-full max-h-80 object-cover border-b border-gray-700">`
-        : `<div class="news-ph h-40"></div>`}
-      <div class="p-4">
-        <h4 class="text-lg font-bold text-red-500 mb-2">${esc(n.title)}</h4>
-        <p class="text-sm text-gray-300 whitespace-pre-line break-words">${esc(n.text)}</p>
-        <div class="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-gray-800 text-xs">
-          <div class="text-gray-400">Автор: <span class="text-yellow-500">${esc(n.author)}</span> · ${esc(n.date)}</div>
-          <div class="flex gap-2">
-            <button data-like="${n.id}" class="border px-3 py-1 ${n.liked?'bg-yellow-500 text-black border-yellow-500':'border-yellow-500 text-yellow-500'}">${n.liked?'★':'☆'} Подобається (${n.likes||0})</button>
-            <button data-del="${n.id}" class="border border-red-600 text-red-500 hover:bg-red-600 hover:text-white px-3 py-1">Видалити</button>
-          </div>
-        </div>
-      </div>
-    </article>`).join('');
-  feed.querySelectorAll('.news-img').forEach(im => im.addEventListener('error', () => {
-    const d = document.createElement('div'); d.className = 'news-ph h-40'; im.replaceWith(d); fillPh(d);
-  }));
-  feed.querySelectorAll('.news-ph').forEach(fillPh);
-  document.getElementById('nempty').classList.toggle('hidden', news.length>0);
-  document.getElementById('ncount').textContent = news.length ? `(${news.length})` : '';
-}
-function fillPh(d){
-  d.className = 'news-ph h-40 flex flex-col items-center justify-center bg-gray-800 text-gray-500 text-xs border-b border-gray-700';
-  d.innerHTML = '<svg width="48" height="48" viewBox="0 0 24 24" fill="#6b7280"><path d="M4 5h16v14H4z M6 17l4-5 3 4 2-2 3 3z" fill-rule="evenodd"/></svg>ФОТО ЗАСЕКРЕЧЕНО';
-}
-
-document.getElementById('nfile').addEventListener('change', e => {
-  const f = e.target.files[0]; pendingImg = null;
-  const prev = document.getElementById('nprev');
-  if(!f){ prev.classList.add('hidden'); return; }
-  const r = new FileReader();
-  r.onload = () => {
-    const im = new Image();
-    im.onload = () => {
-      const max = 800, k = Math.min(1, max/Math.max(im.width, im.height));
-      const c = document.createElement('canvas'); c.width = Math.round(im.width*k); c.height = Math.round(im.height*k);
-      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
-      pendingImg = c.toDataURL('image/jpeg', 0.72);
-      document.getElementById('nprevImg').src = pendingImg; prev.classList.remove('hidden');
-    };
-    im.src = r.result;
-  };
-  r.readAsDataURL(f);
-});
-
-document.getElementById('newsForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const title = document.getElementById('ntitle').value.trim();
-  const text = document.getElementById('ntext').value.trim();
-  const url = document.getElementById('nurl').value.trim();
-  const author = document.getElementById('nauthor').value.trim() || 'Анонім';
-  const err = document.getElementById('nerr');
-  if(!title || !text){ err.textContent = 'Заповніть заголовок і текст: зведення без суті до архіву не приймаються.'; err.classList.remove('hidden'); return; }
-  if(url && !/^https?:\/\//i.test(url)){ err.textContent = 'Посилання на зображення має починатися з http:// або https://.'; err.classList.remove('hidden'); return; }
-  const item = { id: Date.now(), title, text, author, img: pendingImg || url || '', date: new Date().toLocaleString('uk-UA'), likes:0, liked:false };
-  news.unshift(item);
-  if(!saveNews()){
-    if(item.img.startsWith('data:')){ item.img = ''; saveNews();
-      err.textContent = 'Фото завелике для пам\'яті браузера — зведення опубліковано із заглушкою.'; err.classList.remove('hidden');
-    } else { err.textContent = 'Не вдалося зберегти в пам\'яті браузера (сховище заповнене або вимкнене).'; err.classList.remove('hidden'); }
-  } else err.classList.add('hidden');
-  e.target.reset(); pendingImg = null; document.getElementById('nprev').classList.add('hidden');
-  renderNews();
-});
-
-document.getElementById('feed').addEventListener('click', e => {
-  const l = e.target.closest('[data-like]'), d = e.target.closest('[data-del]');
-  if(l){ const n = news.find(x => x.id === +l.dataset.like); if(n){ n.liked = !n.liked; n.likes = Math.max(0, (n.likes||0) + (n.liked?1:-1)); saveNews(); renderNews(); } }
-  if(d){ if(confirm('Видалити це зведення зі стрічки?')){ news = news.filter(x => x.id !== +d.dataset.del); saveNews(); renderNews(); } }
-});
-
-renderNews();
 renderFilters(); render(); showTab('home');
+</script>
+<script>
+(function(){
+  'use strict';
+  var KEY = 'mirotvorets_news_v1';
+  var $ = function(id){ return document.getElementById(id); };
+  var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(m){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); };
+  var safeImg = function(u){ return /^(https?:\/\/|data:image\/)/i.test(u || ''); };
+
+  var storageOk = (function(){ try { localStorage.setItem('__t','1'); localStorage.removeItem('__t'); return true; } catch(e){ return false; } })();
+  var news = [];
+  try { news = JSON.parse(localStorage.getItem(KEY) || '[]'); if(!Array.isArray(news)) news = []; } catch(e){ news = []; }
+  function persist(){ if(!storageOk) return false; try { localStorage.setItem(KEY, JSON.stringify(news)); return true; } catch(e){ return false; } }
+
+  var pending = null; // Promise<string|null>: Base64 обраного файлу
+
+  function msg(text, ok){
+    var el = $('nerr'); if(!el) return;
+    if(!text){ el.classList.add('hidden'); return; }
+    el.textContent = text;
+    el.className = 'text-sm ' + (ok ? 'text-green-400' : 'text-red-500');
+  }
+
+  // Файл -> Base64 (FileReader) -> стиснення через canvas, щоб влізти в localStorage
+  function fileToBase64(file){
+    return new Promise(function(resolve, reject){
+      var r = new FileReader();
+      r.onload = function(){ resolve(r.result); };
+      r.onerror = function(){ reject(r.error || new Error('read')); };
+      r.readAsDataURL(file);
+    });
+  }
+  function shrink(dataUrl, max, q){
+    return new Promise(function(resolve){
+      var im = new Image();
+      im.onload = function(){
+        try {
+          var k = Math.min(1, max / Math.max(im.width, im.height));
+          var c = document.createElement('canvas');
+          c.width = Math.max(1, Math.round(im.width * k)); c.height = Math.max(1, Math.round(im.height * k));
+          c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+          resolve(c.toDataURL('image/jpeg', q));
+        } catch(e){ resolve(dataUrl); }
+      };
+      im.onerror = function(){ resolve(dataUrl); };
+      im.src = dataUrl;
+    });
+  }
+  function prepare(file){
+    return fileToBase64(file).then(function(b64){
+      if(!/^data:image\//i.test(b64)) throw new Error('not image');
+      return shrink(b64, 900, 0.75);
+    });
+  }
+
+  function placeholder(){
+    var d = document.createElement('div');
+    d.className = 'h-40 flex flex-col items-center justify-center bg-gray-800 text-gray-500 text-xs border-b border-gray-700';
+    d.innerHTML = '<svg width="48" height="48" viewBox="0 0 24 24" fill="#6b7280"><path d="M4 5h16v14H4z M6 17l4-5 3 4 2-2 3 3z" fill-rule="evenodd"/></svg>ФОТО ЗАСЕКРЕЧЕНО';
+    return d;
+  }
+
+  function render(){
+    var feed = $('feed'); if(!feed) return;
+    feed.innerHTML = news.map(function(n){
+      return '<article class="bg-[#0f172a] border border-gray-700 hover:border-yellow-600">' +
+        (n.img && safeImg(n.img)
+          ? '<img src="' + esc(n.img) + '" alt="Фото до новини" class="news-img w-full max-h-80 object-cover border-b border-gray-700">'
+          : '<div class="news-ph"></div>') +
+        '<div class="p-4"><h4 class="text-lg font-bold text-red-500 mb-2">' + esc(n.title) + '</h4>' +
+        '<p class="text-sm text-gray-300 whitespace-pre-line break-words">' + esc(n.text) + '</p>' +
+        '<div class="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-gray-800 text-xs">' +
+        '<div class="text-gray-400">Автор: <span class="text-yellow-500">' + esc(n.author) + '</span> · ' + esc(n.date) + '</div>' +
+        '<div class="flex gap-2">' +
+        '<button type="button" data-like="' + n.id + '" class="border px-3 py-1 ' + (n.liked ? 'bg-yellow-500 text-black border-yellow-500' : 'border-yellow-500 text-yellow-500') + '">' + (n.liked ? '★' : '☆') + ' Подобається (' + (n.likes || 0) + ')</button>' +
+        '<button type="button" data-del="' + n.id + '" class="border border-red-600 text-red-500 hover:bg-red-600 hover:text-white px-3 py-1">Видалити</button>' +
+        '</div></div></div></article>';
+    }).join('');
+    Array.prototype.forEach.call(feed.querySelectorAll('.news-ph'), function(d){ d.replaceWith(placeholder()); });
+    Array.prototype.forEach.call(feed.querySelectorAll('.news-img'), function(im){
+      im.addEventListener('error', function(){ im.replaceWith(placeholder()); });
+    });
+    $('nempty').classList.toggle('hidden', news.length > 0);
+    $('ncount').textContent = news.length ? '(' + news.length + ')' : '';
+  }
+
+  // Вибір файлу: одразу готуємо Base64 і показуємо прев'ю
+  $('nfile').addEventListener('change', function(e){
+    var f = e.target.files && e.target.files[0];
+    var prev = $('nprev');
+    pending = null; prev.classList.add('hidden');
+    if(!f) return;
+    pending = prepare(f).then(function(b64){
+      $('nprevImg').src = b64; prev.classList.remove('hidden'); msg('');
+      return b64;
+    }).catch(function(){
+      msg('Не вдалося прочитати цей файл як зображення. Оберіть інший або вставте посилання.');
+      return null;
+    });
+  });
+
+  // Відправка форми
+  $('newsForm').addEventListener('submit', function(e){
+    e.preventDefault();               // сторінка не перезавантажується
+    var btn = e.target.querySelector('button');
+    var title = $('ntitle').value.trim(), text = $('ntext').value.trim();
+    var url = $('nurl').value.trim(), author = $('nauthor').value.trim() || 'Анонім';
+    if(!title || !text){ msg('Заповніть заголовок і текст: зведення без суті до архіву не приймаються.'); return; }
+    if(url && !/^https?:\/\//i.test(url)){ msg('Посилання на зображення має починатися з http:// або https://.'); return; }
+    if(btn) btn.disabled = true;
+
+    // чекаємо, поки фото (якщо обране) повністю конвертується в Base64
+    Promise.resolve(pending).then(function(b64){
+      var item = { id: Date.now(), title: title, text: text, author: author,
+        img: b64 || url || '', date: new Date().toLocaleString('uk-UA'), likes: 0, liked: false };
+      news.unshift(item);
+      var note = '', ok = persist();
+      if(!ok && item.img.indexOf('data:') === 0){
+        // фото завелике — стискаємо сильніше і пробуємо ще раз
+        return shrink(item.img, 480, 0.55).then(function(small){
+          item.img = small; ok = persist();
+          if(!ok){ item.img = ''; ok = persist(); note = 'Фото завелике для пам\'яті браузера — зведення опубліковано із заглушкою.'; }
+          return { ok: ok, note: note };
+        });
+      }
+      return { ok: ok, note: note };
+    }).then(function(res){
+      $('newsForm').reset(); pending = null; $('nprev').classList.add('hidden');
+      render();                        // стрічка оновлюється миттєво
+      if(!storageOk) msg('Зведення опубліковано, але браузер блокує localStorage — після перезавантаження воно зникне.');
+      else if(!res.ok) msg('Не вдалося зберегти в пам\'яті браузера (сховище заповнене).');
+      else msg(res.note || 'Зведення опубліковано.', !res.note);
+    }).catch(function(err){
+      msg('Помилка публікації: ' + (err && err.message ? err.message : 'невідома'));
+    }).then(function(){ if(btn) btn.disabled = false; });
+  });
+
+  // Лайк / видалення
+  $('feed').addEventListener('click', function(e){
+    var l = e.target.closest('[data-like]'), d = e.target.closest('[data-del]');
+    if(l){
+      var n = news.filter(function(x){ return x.id === +l.dataset.like; })[0];
+      if(n){ n.liked = !n.liked; n.likes = Math.max(0, (n.likes || 0) + (n.liked ? 1 : -1)); persist(); render(); }
+    }
+    if(d && confirm('Видалити це зведення зі стрічки?')){
+      news = news.filter(function(x){ return x.id !== +d.dataset.del; }); persist(); render();
+    }
+  });
+
+  render();
+})();
 </script>
 </body>
 </html>
