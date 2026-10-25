@@ -137,7 +137,7 @@
 
 <!-- МОДАЛКА ДОСЬЄ -->
 <div id="modal" class="hidden fixed inset-0 z-50 bg-black/80 overflow-y-auto p-4" role="dialog" aria-modal="true" aria-labelledby="mTitle">
-  <div class="max-w-3xl mx-auto bg-[#0f172a] border-2 border-red-600 relative">
+  <div id="mBox" class="max-w-3xl mx-auto bg-[#0f172a] border-2 border-red-600 relative">
     <button id="mClose" class="absolute top-2 right-3 text-2xl text-gray-400 hover:text-white" aria-label="Закрити">×</button>
     <div id="mBody" class="p-6"></div>
   </div>
@@ -166,7 +166,7 @@ const DATA = [
     meters:[["Рівень лутання грошей",91,"%"],["Швидкість блокування в соцмережах",99,"% (швидше за світло)"]],
     proofs:["Доказ А: скріншот «Ви не можете надіслати повідомлення цьому користувачу».","Доказ Б: час між «позич, віддам завтра» та блокуванням — 0,4 секунди.","Доказ В: відвідування закладів ЮБІ — мета візитів встановлюється."] },
   { id:5, name:"Кісіль Давид Кісільович", dob:null, img:"david.jpg", alt:"Фото фігуранта: Кісіль Давид Кісільович",
-    badge:"ЗАГРОЗА НА САМОКАТІ / БОКСЕРСЬКА ГРУША", cat:"road", color:"yellow",
+    badge:"ОСОБЛИВО БЕЗПЕЧНИЙ ДЛЯ СУСПІЛЬСТВА", cat:"road", color:"green",
     dossier:"Має двох вихователів-бодібілдерів. Аномально пересувається на електросамокаті в Краковці. Його стихійне катання призвело до того, що директор місцевої школи добровільно пішов у відставку. Ходить на бокс, проте замість тренувань використовується спаринг-партнерами як м'яка боксерська груша, вбираючи всі удари як шмата.",
     meters:[["Децибели катання на самокаті в Краковці",89,"дБ-ів умовних"],["Рівень впитання ударів на боксі",96,"% (як шмата)"]],
     proofs:["Доказ А: заява директора школи «за власним бажанням» — рука тремтіла.","Доказ Б: двоє вихователів-бодібілдерів підтверджують: «він просто їздить».","Доказ В: спаринг-партнери стверджують, що груша втомлюється першою — але не він."] },
@@ -182,7 +182,10 @@ const DATA = [
     proofs:["Доказ А: порожня тара на Курчунку — лічильник збився після першої сотні.","Доказ Б: штанга 20 кг, що притиснула фігуранта, — речовий доказ №1.","Доказ В: протокол затримання складено прямо на килимку для аштанги."] }
 ];
 const CATS = {all:"Усі", humor:"Гумор", agro:"Агросектор", sport:"Водні види", fin:"Фінанси", road:"Самокат і бокс", photo:"Фото й крик", gym:"Курчунок і зал"};
-const col = c => c==="red" ? ["border-red-600","text-red-500","bg-red-600","text-white"] : ["border-yellow-500","text-yellow-500","bg-yellow-500","text-black"];
+const col = c => c==="red" ? ["border-red-600","text-red-500","bg-red-600","text-white"]
+  : c==="green" ? ["border-green-500","text-green-400","bg-green-500","text-black"]
+  : ["border-yellow-500","text-yellow-500","bg-yellow-500","text-black"];
+const GLOW = "border-2 shadow-[0_0_15px_rgba(34,197,94,0.3)]";
 
 const esc = s => String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 let cat = "all";
@@ -199,7 +202,7 @@ function render(){
   const list = DATA.filter(p => (cat==="all"||p.cat===cat) && (p.name+p.dossier+p.badge).toLowerCase().includes(q));
   document.getElementById('grid').innerHTML = list.map(p => {
     const [b,t,bg,fg] = col(p.color);
-    return `<article class="bg-[#0f172a] border ${b} flex flex-col">
+    return `<article class="bg-[#0f172a] border ${b} ${p.color==='green'?GLOW:''} flex flex-col">
       ${photo(p,'h-64')}
       <div class="p-4 flex flex-col gap-3 flex-1">
         <span class="${bg} ${fg} text-xs font-bold px-2 py-1 self-start">${p.badge}</span>
@@ -220,11 +223,13 @@ function renderFilters(){
 
 function openModal(id){
   const p = DATA.find(x=>x.id===id); const [b,t] = col(p.color);
+  document.getElementById('mBox').className = 'max-w-3xl mx-auto bg-[#0f172a] relative ' +
+    (p.color==='green' ? 'border-2 border-green-500 shadow-[0_0_25px_rgba(34,197,94,0.4)]' : 'border-2 border-red-600');
   document.getElementById('mBody').innerHTML = `
     <div class="flex flex-wrap gap-5">
       ${photo(p,'w-40 h-52 shrink-0 border '+b)}
       <div class="flex-1 min-w-[200px]">
-        <div class="text-xs text-red-500 font-bold mb-1">ДОСЬЄ №${String(p.id).padStart(4,'0')} · СЕКРЕТНО</div>
+        <div class="text-xs ${p.color==='green'?'text-green-400':'text-red-500'} font-bold mb-1">ДОСЬЄ №${String(p.id).padStart(4,'0')} · ${p.color==='green'?'ПЕРЕВІРЕНО: БЕЗПЕЧНИЙ (ІРОНІЧНО)':'СЕКРЕТНО'}</div>
         <h2 id="mTitle" class="text-xl font-bold ${t} mb-1">${p.name}</h2>
         ${p.dob?`<div class="text-xs text-gray-400 mb-2">Дата народження: ${p.dob}</div>`:''}
         <span class="text-xs font-bold border ${b} ${t} px-2 py-1 inline-block mb-3">${p.badge}</span>
@@ -234,7 +239,7 @@ function openModal(id){
     <h3 class="text-yellow-500 font-bold mt-6 mb-2">Характеристики</h3>
     <div class="space-y-3">${p.meters.map(m=>`
       <div><div class="flex justify-between text-xs mb-1"><span>${m[0]}</span><span class="${t}">${m[1]} ${m[2]}</span></div>
-      <div class="bar h-3 bg-gray-800 border border-gray-700"><i class="${p.color==='red'?'bg-red-600':'bg-yellow-500'}" data-w="${m[1]}"></i></div></div>`).join('')}
+      <div class="bar h-3 bg-gray-800 border border-gray-700"><i class="${p.color==='red'?'bg-red-600':p.color==='green'?'bg-green-500':'bg-yellow-500'}" data-w="${m[1]}"></i></div></div>`).join('')}
     </div>
     <h3 class="text-yellow-500 font-bold mt-6 mb-2">Докази</h3>
     <ul class="space-y-2 text-sm">${p.proofs.map(x=>`<li class="border-l-4 border-red-600 bg-black/40 px-3 py-2">${x}</li>`).join('')}</ul>`;
